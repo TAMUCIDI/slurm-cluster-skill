@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+dist/
+# Private local investigation and experiment artifacts, not the distributable skill.
+HANDOFF.MD
+analysis/
+benchmarks/
+# Authentication material must never be distributed.
+.ssh/
+id_aces_tamu*
