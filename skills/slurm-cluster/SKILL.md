@@ -1,6 +1,6 @@
 ---
 name: slurm-cluster
-description: Operate Slurm HPC clusters through SSH, including ACES certificate setup and renewal, resource and allocation checks, file transfer, batch jobs, and Intel PVC/XPU workload adaptation. Use when a user wants an agent to run or troubleshoot work on a Slurm cluster.
+description: Operate Slurm HPC clusters through SSH, including ACES authentication, resource checks, batch jobs, Intel PVC/XPU adaptation, and model API or benchmark integration. Use when a user wants an agent to run or troubleshoot work on a Slurm cluster.
 ---
 
 # Slurm cluster operations
@@ -12,6 +12,8 @@ Use the bundled `scripts/aces.py` with Python 3 and OpenSSH. Resolve paths from 
 - ACES onboarding/authentication: read [references/aces.md](references/aces.md). Each user needs their own resource account/allocation. The skill supplies no credentials or entitlement.
 - Upload, submit, monitor, collect results: read [references/slurm.md](references/slurm.md). `--host OTHER_ALIAS` uses an already configured SSH alias for other Slurm clusters; ACES auth/resources/environment assumptions do not transfer.
 - Intel PVC or CUDA-to-XPU adaptation: read [references/pvc.md](references/pvc.md) before selecting an environment or editing training code. Idle GPU counts alone do not establish suitability.
+- Local model API access: use [references/slurm.md](references/slurm.md#local-access-to-a-model-api) for the job/tunnel lifecycle and verify an authenticated generation from the local client.
+- LLM benchmark integration: read [references/benchmarks.md](references/benchmarks.md) to match model access, API capabilities and the evaluator's requirements, and distinguish backend integration from scored evaluation.
 
 ## Execution contract
 

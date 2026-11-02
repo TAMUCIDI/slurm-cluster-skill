@@ -47,7 +47,19 @@ If expired or missing, log in to portal again; no bypass of SSO/MFA. Certificate
 
 Use `myproject` for allocation/account selection and `showquota` before large uploads. `myproject -j ACCOUNT` was observed to show the current user's job records, not full per-user project billing. Slurm TRES resource hours are not exact AMS SU charges. Request only the resources and duration the workload needs.
 
+AMS can post completed jobs with a delay. Slurm's `AllocTRES billing` did not include the full GPU SU charge in the tested jobs. Label a calculation from actual elapsed time and the current AMS CPU/memory/GPU rates as an estimate until reconciled with posted records. A failed job can still cost SUs; an unchanged balance immediately after completion is not evidence of free compute.
+
 Compute-node internet generally uses `module load WebProxy`; verify endpoint behavior in the job. Do not train/install huge environments on login nodes. Check shared/user environment paths and permissions for this account.
+
+## Capacity and queue statistics
+
+Timestamp each snapshot. Distinguish documented physical inventory, Slurm-configured devices (`CfgTRES`), allocated devices (`AllocTRES`) and ordinary available devices (`gpuavail`). An inventory/configuration gap has unknown physical status until checked; allocated cards are not measured GPU utilization. For an accounting of configured devices, use mutually exclusive categories for allocated, ordinary available, down/drained, idle-reserved and otherwise unavailable cards. Do not call every unallocated card usable or every unavailable card busy.
+
+Use `squeue -r` to expand job arrays; task IDs can contain underscores. Preserve those elements in parsers and reconcile requested GPU totals with node allocations. Inspect pending reasons: per-user GPU limits, array concurrency limits, held jobs and dependencies differ from resource contention. A free GPU does not make every pending job eligible, and queue age does not predict a new job's wait.
+
+For durations, distinguish running elapsed time, requested wall limits, pending age and completed actual runtime. A completed-job average should state its time window, included states, unique job/task count and whether it is weighted by jobs or GPUs; report a median alongside the mean. Successful completions omit still-running and unsuccessful jobs and do not estimate remaining runtime or wait time.
+
+For `sacct`, use `--partition=pvc`; `-p` means parsable output. Keep raw queries and verify nonempty results before summarizing. Explicit start/end timestamps helped resolve an empty query in one investigation, but the cause was not established. For an exact elapsed window across DST, use timezone-aware timestamps and a UTC cutoff; the same local clock time on adjacent dates need not be 24 hours apart.
 
 Sources (recheck when site behavior changes):
 - https://hprc.tamu.edu/kb/User-Guides/ACES/Access/

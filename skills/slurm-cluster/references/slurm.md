@@ -24,6 +24,20 @@ Submit transmits the local batch script via stdin. Other code/data must exist re
 
 Use authorized cancellation for the user's selected job only. Check the batch exit code and expected artifacts after completion. A saved checkpoint should be reloadable; for training verify finite loss and actual parameter changes, not just a process exiting zero. Record node/framework/device and distinguish GPU allocator peak from board usage and Slurm host RAM.
 
+## Local access to a model API
+
+Run the model service inside the authorized GPU job, then forward a local loopback port through the login host to the allocated compute node. With the user's existing SSH alias, the shape is:
+
+```bash
+ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8000:COMPUTE_NODE:MODEL_PORT CLUSTER_ALIAS
+```
+
+Replace the node/port/alias with the running job's values. For ACES isolated SSH configuration, also pass `-F ~/.ssh/aces/config`. A forward terminating on the login host connects to the compute node's network interface: a service listening only on compute-node `127.0.0.1` is unreachable by this route. If using a network listener, require API authentication. A tunnel terminating on the compute node can instead reach its loopback listener, but verify that site's compute-node SSH access/forwarding first.
+
+Keep API keys out of logs, source, URLs, published artifacts and terminal output. A short pilot can use an owner-readable endpoint file in a private remote run directory; consume the key in client memory. Verify health, unauthorized rejection, and a real authenticated generation through the local tunnel. A local listener or login-node SSH banner alone does not establish model API reachability. Record local round-trip latency separately from server generation time and distinguish a minimal completion endpoint from a full OpenAI-compatible or streaming implementation.
+
+After the pilot, stop its service/job, close the local tunnel and confirm terminal Slurm state. Production use requires its own lifetime, authentication and performance decisions. ACES GPU/PVC jobs have a documented 48-hour maximum; resubmission can queue/change nodes and require tunnel updates. SU charges accrue while resources are allocated, including idle API time. Credential renewal affects reconnects separately from the running job.
+
 ## Other clusters
 
 ```text

@@ -1,11 +1,34 @@
 # Slurm Cluster Agent Skill
 
-让 agent 通过 SSH 使用 ACES 和其他 Slurm 集群。Skill 负责操作流程和 PVC/XPU 适配知识，标准库 Python CLI 负责配置、续期、传输和任务操作。支持 macOS/Linux；Windows 请使用 WSL。运行依赖：Python 3.9+、OpenSSH 9+。
+[简体中文](README.md) | [English](README.en.md)
+
+让 agent 通过 SSH 使用 ACES 和其他 Slurm 集群。Skill 负责操作流程和 PVC/XPU 适配知识，标准库 Python CLI 负责配置、续期、传输和任务操作。支持 macOS/Linux；Windows 通过 WSL2 使用下方的 Linux 流程。运行依赖：Python 3.9+、OpenSSH 9+。
 
 ```bash
 git clone https://github.com/jz0204/slurm-cluster-skill.git
 cd slurm-cluster-skill
 ```
+
+## Windows（WSL2）
+
+先按 [Microsoft WSL 安装指南](https://learn.microsoft.com/en-us/windows/wsl/install)，在管理员 PowerShell 中运行：
+
+```powershell
+wsl --install
+```
+
+按提示重启、打开 Ubuntu 并创建 Linux 用户，然后在 **WSL 的 Ubuntu 终端**中安装依赖：
+
+```bash
+sudo apt update
+sudo apt install -y python3 openssh-client git
+python3 --version
+ssh -V
+```
+
+确认 Python ≥3.9、OpenSSH ≥9，再在 WSL 的 Linux home（如 `~/slurm-cluster-skill`）克隆仓库，运行本文的 Bash 命令；agent 执行这些命令时也应使用 WSL 环境。SSH 配置和凭据使用 WSL 内的 `~/.ssh/aces/`。仓库和凭据放在 Linux 文件系统中，避免 `/mnt/c` 的[文件权限差异](https://learn.microsoft.com/en-us/windows/wsl/file-permissions)。Windows 浏览器下载的证书可通过 `/mnt/c/Users/.../Downloads/...` 路径传给 `install-cert`，它会复制到 WSL 的凭据目录。提交用的 `.sbatch` 文件保存为 LF 换行。
+
+当前采用 WSL2 的 Linux 兼容路径；尚未在 Windows/WSL 实机完成端到端验证，原生 PowerShell/CMD 直接运行不是当前支持路径。
 
 ## 交给 agent
 
@@ -66,7 +89,9 @@ ln -s "$PWD/skills/slurm-cluster" ~/.codex/skills/slurm-cluster
 
 [PVC 指南](skills/slurm-cluster/references/pvc.md) 教 agent 判断 CUDA 依赖、选择 XPU 环境、验证前反向传播和 checkpoint，再尝试单卡 LoRA、QLoRA 或多卡。包含一个小型 [XPU 探针](skills/slurm-cluster/scripts/xpu_probe.py) 和 [Slurm 模板](skills/slurm-cluster/assets/pvc-probe.sbatch)，运行前需确认资源预算。
 
-已有本地实测：ACES 官方脚本可经 SSH 续期；Torch 2.7 XPU 环境完成单卡 CNN 训练。旧 Torch 2.1/IPEX 路径曾无法识别 XPU。共享路径和软件版本可能变化，skill 要求重新核实。CNN 成功不代表任意 LLM、量化算子和分布式训练都兼容。
+已有本地实测：ACES 官方脚本可经 SSH 续期；Torch 2.7 XPU 环境完成单卡 CNN 训练，以及 CodeLlama 7B 的 BF16 生成、短序列 LoRA 更新、适配器保存恢复和 SSH 隧道本地 API 调用。旧 Torch 2.1/IPEX 路径曾无法识别 XPU。共享路径和软件版本可能变化，skill 要求重新核实；这些小测试不代表模型质量提升，也未验证 vLLM、量化或分布式训练。
+
+另有 Qwen2.5-1.5B-Instruct 的真实 OpenAI SDK 与 lm-eval 生成后端接入测试；未运行正式 GIS 评测，且 JSON 输出未通过严格解析。[Benchmark 指南](skills/slurm-cluster/references/benchmarks.md) 说明接口能力和评测结果的区别；[ACES 指南](skills/slurm-cluster/references/aces.md#capacity-and-queue-statistics) 补充 GPU/队列统计与 SU 入账的解释边界。
 
 ## 验证与分发
 
